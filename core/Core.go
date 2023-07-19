@@ -1,9 +1,9 @@
 package core
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,7 +22,7 @@ type Elements []map[string]interface{}
 
 func Generate(templatePath, dataPath, fileIdentifier string, size int8) {
 	log.Print("Html generation init...")
-	elements := chargeJsonData(dataPath)
+	elements := chargeData(dataPath)
 	template := chargeTemplate(templatePath)
 	generateFile(int(size), fileIdentifier, elements, template)
 	log.Print("Html generation done-")
@@ -74,11 +74,47 @@ func currentDir() string {
 	return curDir + "/"
 }
 
-func chargeJsonData(dataPath string) Elements {
-	content, err := ioutil.ReadFile(currentDir() + dataPath)
+func chargeData(dataPath string) Elements {
+	dataPath = fmt.Sprintf("%s%s", currentDir(), dataPath)
+	switch {
+	case strings.Contains(dataPath, ".json"):
+		return dataFromJson(dataPath)
+	case strings.Contains(dataPath, ".csv"):
+		return dataFromCsv(dataPath)
+	default:
+		panic("Error not supported file")
+	}
+}
+
+func dataFromCsv(path string) Elements {
+	fileContent, err := os.Open(path)
+	ifErrorStop(err)
+	data, err := csv.NewReader(fileContent).ReadAll()
+	ifErrorStop(err)
+
+	var headers []string
+	var elements Elements
+	for i, col := range data {
+		if i == 0 {
+			for _, cell := range col {
+				headers = append(headers, cell)
+			}
+			continue
+		}
+		line := map[string]interface{}{}
+		for j, cell := range col {
+			line[headers[j]] = cell
+		}
+		elements = append(elements, line)
+	}
+	return elements
+}
+
+func dataFromJson(path string) Elements {
+	byteContent, err := os.ReadFile(path)
 	ifErrorStop(err)
 	elements := Elements{}
-	ifErrorStop(json.Unmarshal(content, &elements))
+	ifErrorStop(json.Unmarshal(byteContent, &elements))
 	return elements
 }
 
