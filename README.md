@@ -1,4 +1,4 @@
-<h1 align="center">HTML generator Rosha</h1>
+<h1 align="center">HTML generator</h1>
 <h3 align="center">Use HTML templates and populate with data</h3>
 
 <h3 align="left">Languages and Tools:</h3>
