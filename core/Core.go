@@ -120,6 +120,7 @@ func dataFromJson(path string) Elements {
 
 func ifErrorStop(err error) {
 	if err != nil {
-		log.Panic("ERROR:" + err.Error())
+		log.Println("Error occurred on:", err.Error())
+		os.Exit(0)
 	}
 }
